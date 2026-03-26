@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="ko" class="theme-light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>/argue — 당신의 생각에 반박하는 AI</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- html-to-image for PNG export -->
+  <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
+
+  <style>
+    :root {
+      --bg: #fafaf9;
+      --surface: #ffffff;
+      --surface-hover: #f5f5f4;
+      --border: rgba(0,0,0,0.08);
+      --text: #0f172a;
+      --text-secondary: #64748b;
+      --accent: #3b82f6;
+      --accent-secondary: #60a5fa;
+      --positive: #10b981;
+      --negative: #ef4444;
+      --warning: #f59e0b;
+    }
+
+    .theme-light {
+      --bg: #fafaf9;
+      --surface: #ffffff;
+      --surface-hover: #f5f5f4;
+      --border: rgba(0,0,0,0.08);
+      --text: #0f172a;
+      --text-secondary: #64748b;
+      --accent: #3b82f6;
+      --accent-secondary: #60a5fa;
+      --positive: #10b981;
+      --negative: #ef4444;
+      --warning: #f59e0b;
+    }
+
+    .theme-dark {
+      --bg: #0a0a0a;
+      --surface: #1a1a1a;
+      --surface-hover: #262626;
+      --border: rgba(255,255,255,0.08);
+      --text: #ededed;
+      --text-secondary: #a3a3a3;
+      --accent: #60a5fa;
+      --accent-secondary: #3b82f6;
+      --positive: #34d399;
+      --negative: #f87171;
+      --warning: #fbbf24;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      transition: background 0.3s, color 0.3s;
+      overflow-x: hidden;
+    }
+
+    /* Skip to content */
+    .skip-link {
+      position: absolute;
+      top: -40px;
+      left: 0;
+      background: var(--accent);
+      color: white;
+      padding: 8px 16px;
+      text-decoration: none;
+      border-radius: 0 0 4px 0;
+      z-index: 10000;
+    }
+
+    .skip-link:focus {
+      top: 0;
+    }
+
+    /* Menu System */
+    .viz-menu {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
+
+    .viz-menu-toggle {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .viz-menu-toggle:hover {
+      background: var(--surface-hover);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .viz-menu-toggle svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--text);
+    }
+
+    .viz-menu-dropdown {
+      position: absolute;
+      top: 56px;
+      right: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px;
+      min-width: 200px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px);
+      transition: all 0.2s;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+
+    .viz-menu-dropdown.open {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .viz-menu-dropdown button {
+      width: 100%;
+      padding: 10px 14px;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background 0.15s;
+    }
+
+    .viz-menu-dropdown button:hover {
+      background: var(--surface-hover);
+    }
+
+    .viz-menu-dropdown button svg {
+      width: 16px;
+      height: 16px;
+      stroke: var(--text-secondary);
+    }
+
+    /* Main Layout */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 24px 120px;
+    }
+
+    section {
+      margin-bottom: 80px;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 60px 24px 80px;
+      background: linear-gradient(135deg, #fecaca 0%, #fca5a5 50%, #f87171 100%);
+      border-radius: 20px;
+      margin-bottom: 80px;
+    }
+
+    .theme-dark .hero {
+      background: linear-gradient(135deg, #991b1b 0%, #dc2626 50%, #b91c1c 100%);
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: var(--surface);
+      color: var(--negative);
+      padding: 8px 16px;
+      border-radius: 24px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 20px;
+      line-height: 1.1;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      max-width: 700px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* Section Headers */
+    .section-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .section-header h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+
+    .section-header p {
+      font-size: 1.125rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Feature Grid */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-bottom: 60px;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      transition: all 0.3s;
+    }
+
+    .feature-card:hover {
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      border-color: var(--accent);
+      transform: translateY(-4px);
+    }
+
+    .feature-icon {
+      width: 56px;
+      height: 56px;
+      background: var(--negative);
+      color: white;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      margin-bottom: 16px;
+    }
+
+    .feature-card h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .feature-card p {
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* How It Works */
+    .workflow-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+      margin: 48px 0;
+    }
+
+    .workflow-step {
+      text-align: center;
+      position: relative;
+    }
+
+    .workflow-step:not(:last-child)::after {
+      content: '→';
+      position: absolute;
+      top: 30px;
+      right: -24px;
+      font-size: 2rem;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .workflow-icon {
+      width: 64px;
+      height: 64px;
+      background: var(--accent);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 1.75rem;
+    }
+
+    .workflow-step h4 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .workflow-step p {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+    }
+
+    /* Timeline */
+    .timeline {
+      position: relative;
+      padding: 40px 0;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: linear-gradient(180deg, var(--accent), var(--positive));
+      transform: translateX(-50%);
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 1fr 80px 1fr;
+      gap: 24px;
+      margin-bottom: 48px;
+      align-items: center;
+    }
+
+    /* User responses on the right */
+    .timeline-item.user-side .timeline-content:first-child {
+      order: 3;
+    }
+
+    .timeline-item.user-side .timeline-marker {
+      order: 2;
+    }
+
+    .timeline-item.user-side .timeline-empty {
+      order: 1;
+    }
+
+    .timeline-content {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      transition: all 0.3s;
+    }
+
+    .timeline-content:hover {
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      border-color: var(--accent);
+    }
+
+    .timeline-time {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .timeline-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .timeline-desc {
+      color: var(--text-secondary);
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    .timeline-marker {
+      width: 80px;
+      height: 80px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: white;
+      font-weight: 700;
+      position: relative;
+      z-index: 2;
+      margin: 0 auto;
+      border: 4px solid var(--bg);
+    }
+
+    .timeline-marker.attack {
+      background: var(--negative);
+    }
+
+    .timeline-marker.user {
+      background: var(--warning);
+    }
+
+    .timeline-marker.success {
+      background: var(--positive);
+    }
+
+    .timeline-empty {
+      /* Empty space for alternating layout */
+    }
+
+    /* Benefits */
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .benefit-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      transition: all 0.3s;
+    }
+
+    .benefit-card:hover {
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      border-color: var(--positive);
+    }
+
+    .benefit-card h3 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--positive);
+    }
+
+    .benefit-card p {
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate {
+      animation: fadeInUp 0.6s ease-out forwards;
+      opacity: 0;
+    }
+
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      main {
+        padding: 60px 16px 80px;
+      }
+
+      .hero {
+        padding: 40px 16px 60px;
+        margin-bottom: 60px;
+      }
+
+      .hero h1 {
+        font-size: 2.5rem;
+      }
+
+      .section-header h2 {
+        font-size: 2rem;
+      }
+
+      .timeline::before {
+        left: 40px;
+      }
+
+      .timeline-item {
+        grid-template-columns: 80px 1fr;
+        gap: 16px;
+      }
+
+      .timeline-item.user-side .timeline-content:first-child {
+        order: 2;
+      }
+
+      .timeline-item.user-side .timeline-marker {
+        order: 1;
+      }
+
+      .timeline-empty {
+        display: none;
+      }
+
+      .timeline-marker {
+        width: 64px;
+        height: 64px;
+        font-size: 1.25rem;
+      }
+
+      .workflow-step:not(:last-child)::after {
+        content: '↓';
+        right: auto;
+        left: 50%;
+        top: auto;
+        bottom: -20px;
+        transform: translateX(-50%);
+      }
+
+      .workflow-steps {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 375px) {
+      body {
+        overflow-x: hidden;
+      }
+
+      .hero h1 {
+        font-size: 2rem;
+      }
+
+      .timeline-item {
+        gap: 12px;
+      }
+
+      .timeline-marker {
+        width: 56px;
+        height: 56px;
+        font-size: 1.125rem;
+      }
+    }
+
+    /* Print Styles */
+    @media print {
+      .viz-menu,
+      .skip-link {
+        display: none !important;
+      }
+
+      body {
+        background: white;
+        color: black;
+      }
+
+      section {
+        page-break-inside: avoid;
+      }
+    }
+
+    /* Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
+
+  <!-- Menu -->
+  <div class="viz-menu">
+    <button class="viz-menu-toggle" onclick="toggleMenu()" aria-label="메뉴 열기">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+    <div class="viz-menu-dropdown" id="vizMenuDropdown">
+      <button onclick="cycleTheme()">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        테마 변경
+      </button>
+      <button onclick="downloadImage()">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        PNG 다운로드
+      </button>
+      <button onclick="window.print()">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 6 2 18 2 18 9"></polyline>
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+          <rect x="6" y="14" width="12" height="8"></rect>
+        </svg>
+        인쇄/PDF
+      </button>
+    </div>
+  </div>
+
+  <main id="main-content" role="main">
+    <!-- Hero Section -->
+    <section class="hero animate">
+      <div class="hero-badge">Claude Code Skill</div>
+      <h1>/argue</h1>
+      <p>당신의 생각에 반박하는 AI — 약점을 찾고, 논쟁하고, 더 나은 결론을 도출합니다</p>
+    </section>
+
+    <!-- What is Argue -->
+    <section>
+      <div class="section-header animate delay-1">
+        <h2>/argue 스킬이란?</h2>
+        <p>악마의 변호인 역할을 하는 턴 베이스 논쟁 도구</p>
+      </div>
+
+      <div class="feature-grid">
+        <div class="feature-card animate delay-2">
+          <div class="feature-icon">⚔️</div>
+          <h3>악마의 변호인</h3>
+          <p>Claude가 당신의 생각에 반대 입장을 취합니다. 약점, 전제 오류, 간과된 리스크를 집중적으로 공략합니다.</p>
+        </div>
+
+        <div class="feature-card animate delay-3">
+          <div class="feature-icon">🎯</div>
+          <h3>약점 집중 공격</h3>
+          <p>불필요한 쿠션 없이 날카롭고 직설적으로 문제점을 지적합니다. 한 번에 하나씩, 핵심만 공격합니다.</p>
+        </div>
+
+        <div class="feature-card animate delay-4">
+          <div class="feature-icon">🔄</div>
+          <h3>턴 베이스 논쟁</h3>
+          <p>Claude의 공격 → 당신의 반박 → 다시 공격. 같은 논점이 반복되거나 약점이 모두 드러날 때까지 계속됩니다.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works -->
+    <section>
+      <div class="section-header animate">
+        <h2>어떻게 작동하나요?</h2>
+        <p>3단계 프로세스로 완성되는 논쟁</p>
+      </div>
+
+      <div class="workflow-steps animate delay-1">
+        <div class="workflow-step">
+          <div class="workflow-icon">📋</div>
+          <h4>맥락 레이어</h4>
+          <p>논쟁 주제 파악, 유저 입장 확인, 논쟁 목적 정의</p>
+        </div>
+
+        <div class="workflow-step">
+          <div class="workflow-icon">⚔️</div>
+          <h4>논쟁 레이어</h4>
+          <p>턴 베이스 논쟁, 약점 공격, 유저 반박 수용</p>
+        </div>
+
+        <div class="workflow-step">
+          <div class="workflow-icon">✅</div>
+          <h4>결론 & 저장</h4>
+          <p>발견된 약점 정리, 인사이트 도출, 마크다운 자동 저장</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Real Case Study Timeline -->
+    <section>
+      <div class="section-header animate">
+        <h2>실제 사용 사례</h2>
+        <p>HTML 문서 비판부터 완전한 재설계까지 — 2시간의 여정</p>
+      </div>
+
+      <div class="timeline">
+        <!-- Step 1 -->
+        <div class="timeline-item animate">
+          <div class="timeline-content">
+            <div class="timeline-time">10:00 AM</div>
+            <div class="timeline-title">🚀 시작</div>
+            <div class="timeline-desc">
+              사용자가 <code>/argue</code> 실행. HTML 파일(overtime-analysis-workflow-visualization.html)에 대한 우려 제기: "비기술직에게 Claude Code를 설명하려는데 메시지가 잘 전달될까?"
+            </div>
+          </div>
+          <div class="timeline-marker">1</div>
+          <div class="timeline-empty"></div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="timeline-item animate delay-1">
+          <div class="timeline-content">
+            <div class="timeline-time">10:03 AM</div>
+            <div class="timeline-title">📖 맥락 파악</div>
+            <div class="timeline-desc">
+              argue 스킬이 HTML 파일을 읽고 분석. 타겟 유저 재정의: "아예 사용 못 하는 사람"이 아니라 "환경 설정은 되어 있는데 어떻게 써야 할지 모르는 사람".
+            </div>
+          </div>
+          <div class="timeline-marker">2</div>
+          <div class="timeline-empty"></div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="timeline-item animate delay-2">
+          <div class="timeline-content">
+            <div class="timeline-time">10:05 AM</div>
+            <div class="timeline-title">⚔️ 첫 번째 공격</div>
+            <div class="timeline-desc">
+              <strong>"제목부터 이미 실패했다"</strong><br>
+              "Overtime Analysis Workflow", "MCP" 같은 용어들이 비기술직 타겟에 맞지 않음. 3초 안에 "이거 개발자용 아닌가?" 생각하고 떠날 것.
+            </div>
+          </div>
+          <div class="timeline-marker attack">⚔️</div>
+          <div class="timeline-empty"></div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="timeline-item animate delay-3">
+          <div class="timeline-content">
+            <div class="timeline-time">10:08 AM</div>
+            <div class="timeline-title">⚔️ 두 번째 공격</div>
+            <div class="timeline-desc">
+              <strong>"물고기 vs 물고기 잡는 법"</strong><br>
+              이 문서는 "이미 만들어진 워크플로우의 설명서"지, "새 워크플로우를 만드는 방법"이 아님. 읽고 나면 자기 업무에 어떻게 적용할지 모름.
+            </div>
+          </div>
+          <div class="timeline-marker attack">⚔️</div>
+          <div class="timeline-empty"></div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="timeline-item user-side animate">
+          <div class="timeline-content">
+            <div class="timeline-time">10:12 AM</div>
+            <div class="timeline-title">💬 사용자 반박</div>
+            <div class="timeline-desc">
+              기본 가이드 URL 제공 (https://deantechta.github.io/share_knowledge/). "이걸 먼저 공유하고 세부 케이스로 이 문서를 제공할 예정이야."
+            </div>
+          </div>
+          <div class="timeline-marker user">👤</div>
+          <div class="timeline-empty"></div>
+        </div>
+
+        <!-- Step 6 -->
+        <div class="timeline-item animate delay-1">
+          <div class="timeline-content">
+            <div class="timeline-time">10:15 AM</div>
+            <div class="timeline-title">⚔️ 세 번째 공격</div>
+            <div class="timeline-desc">
+              <strong>"역할이 겹친다"</strong><br>
+              기본 가이드에 이미 5가지 워크플로우가 있을 텐데, 왜 하필 새로운 도메인(Jira/Wiki)을 세부 케이스로? 기존 워크플로우 심화가 더 자연스럽지 않나?
+            </div>
+          </div>
+          <div class="timeline-marker attack">⚔️</div>
+          <div class="timeline-empty"></div>
+        </div>
+
+        <!-- Step 7 -->
+        <div class="timeline-item user-side animate delay-2">
+          <div class="timeline-content">
+            <div class="timeline-time">10:18 AM</div>
+            <div class="timeline-title">💬 사용자 의도 명시</div>
+            <div class="timeline-desc">
+              "MCP 확장성을 증명하고 싶었어. 회사 제공 MCP로 무궁무진하다는 것과 어려운 건 Claude가 다 해준다는 것을 보여주려고."
+            </div>
+          </div>
+          <div class="timeline-marker user">👤</div>
+          <div class="timeline-empty"></div>
+        </div>
+
+        <!-- Step 8 -->
+        <div class="timeline-item animate delay-3">
+          <div class="timeline-content">
+            <div class="timeline-time">10:22 AM</div>
+            <div class="timeline-title">💥 네 번째 공격 (결정타)</div>
+            <div class="timeline-desc">
+              <strong>"메시지가 정반대로 전달된다"</strong><br>
+              당신은 "Claude가 다 해준다"를 보여주려 했지만, 문서는 JQL/CQL 쿼리, 4단계 프로세스, 분석 기준을 50% 할애. 이건 "이 정도는 알아야 한다"로 읽힘.
+            </div>
+          </div>
+          <div class="timeline-marker attack">💥</div>
+          <div class="timeline-empty"></div>
+        </div>
+
+        <!-- Step 9 -->
+        <div class="timeline-item user-side animate">
+          <div class="timeline-content">
+            <div class="timeline-time">10:28 AM</div>
+            <div class="timeline-title">✅ 사용자 인정</div>
+            <div class="timeline-desc">
+              "맞네, 접근방식이 잘못된 것 같아. 그럼 어떻게 수정하는 게 좋겠어? 너의 피드백을 다시 클로드에게 제시하고 교안을 수정하려고 해."
+            </div>
+          </div>
+          <div class="timeline-marker success">✓</div>
+          <div class="timeline-empty"></div>
+        </div>
+
+        <!-- Step 10 -->
+        <div class="timeline-item animate delay-1">
+          <div class="timeline-content">
+            <div class="timeline-time">11:07 AM</div>
+            <div class="timeline-title">📄 결론 문서화</div>
+            <div class="timeline-desc">
+              <code>argue-2026-03-26-1107-HTML파일로비기술직에게ClaudeCode설명.md</code> 자동 저장. 발견된 약점, 논쟁 흐름, 최종 권고를 포함한 구조화된 결론 문서.
+            </div>
+          </div>
+          <div class="timeline-marker success">📄</div>
+          <div class="timeline-empty"></div>
+        </div>
+
+        <!-- Step 11 -->
+        <div class="timeline-item animate delay-2">
+          <div class="timeline-content">
+            <div class="timeline-time">11:15 AM</div>
+            <div class="timeline-title">🔧 실행</div>
+            <div class="timeline-desc">
+              사용자가 <code>/visualize</code> 실행. 논쟁 문서의 피드백을 지침으로 HTML을 전면 수정. "실제 대화 예시를 제일 앞으로", "기술 세부사항 접기", "MCP 확장성 강조" 등 구체적 가이드 적용.
+            </div>
+          </div>
+          <div class="timeline-marker">🛠️</div>
+          <div class="timeline-empty"></div>
+        </div>
+
+        <!-- Step 12 -->
+        <div class="timeline-item animate delay-3">
+          <div class="timeline-content">
+            <div class="timeline-time">11:25 AM</div>
+            <div class="timeline-title">🎉 완성</div>
+            <div class="timeline-desc">
+              <code>claude-code-mcp-case-study.html</code> 생성 완료. 메시지 중심 구조로 완전히 재설계. "Claude가 어떻게 하는지"가 아니라 "우리가 어떻게 시키는지"에 집중.
+            </div>
+          </div>
+          <div class="timeline-marker success">🎉</div>
+          <div class="timeline-empty"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Benefits -->
+    <section>
+      <div class="section-header animate">
+        <h2>왜 /argue를 써야 하나요?</h2>
+        <p>혼자서는 찾지 못했을 약점을 발견합니다</p>
+      </div>
+
+      <div class="benefits-grid">
+        <div class="benefit-card animate">
+          <h3>Confirmation Bias 타파</h3>
+          <p>자기 생각을 강화하는 정보만 보는 인지 편향을 깨뜨립니다. Claude가 당신이 보지 못한 반대 입장을 제시합니다.</p>
+        </div>
+
+        <div class="benefit-card animate delay-1">
+          <h3>실행 전 리스크 제거</h3>
+          <p>아이디어를 실행하기 전에 치명적 약점을 발견할 수 있습니다. 2시간 논쟁으로 2개월 낭비를 방지합니다.</p>
+        </div>
+
+        <div class="benefit-card animate delay-2">
+          <h3>자동 문서화</h3>
+          <p>논쟁이 끝나면 결론이 마크다운 파일로 자동 저장됩니다. 날짜, 시간, 약점, 인사이트, 권고사항이 모두 기록됩니다.</p>
+        </div>
+
+        <div class="benefit-card animate delay-3">
+          <h3>파일도 논쟁 가능</h3>
+          <p>단순 명제뿐만 아니라 HTML, MD, 코드 파일을 지정해서 "이 파일 괜찮아?"라고 물어볼 수 있습니다. Claude가 파일을 읽고 약점을 찾아냅니다.</p>
+        </div>
+
+        <div class="benefit-card animate">
+          <h3>실행 가능한 피드백</h3>
+          <p>추상적 비판이 아닌 구체적 수정 방향을 제시합니다. 이 케이스처럼 논쟁 결과를 다른 스킬 (<code>/visualize</code>)의 입력으로 바로 사용 가능.</p>
+        </div>
+
+        <div class="benefit-card animate delay-1">
+          <h3>맥락 기억</h3>
+          <p>논쟁 중 "기본 가이드 URL" 같은 추가 맥락을 제공하면 즉시 반영하여 다음 공격을 조정합니다. 유동적 2레이어 구조.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // Theme Management
+    var currentTheme = 'light';
+
+    function detectSystemTheme() {
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'dark';
+      }
+      return 'light';
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.className = 'theme-' + theme;
+      localStorage.setItem('viz-theme', theme);
+      currentTheme = theme;
+    }
+
+    function cycleTheme() {
+      var newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      applyTheme(newTheme);
+    }
+
+    // Initialize theme
+    var savedTheme = localStorage.getItem('viz-theme');
+    var initialTheme = savedTheme || detectSystemTheme();
+    applyTheme(initialTheme);
+
+    // Menu Toggle
+    function toggleMenu() {
+      var dropdown = document.getElementById('vizMenuDropdown');
+      dropdown.classList.toggle('open');
+    }
+
+    // Close menu when clicking outside
+    document.addEventListener('click', function(e) {
+      var menu = document.querySelector('.viz-menu');
+      var dropdown = document.getElementById('vizMenuDropdown');
+      if (!e.target.closest('.viz-menu') && dropdown) {
+        dropdown.classList.remove('open');
+      }
+    });
+
+    // Download as PNG
+    function downloadImage() {
+      if (typeof htmlToImage === 'undefined') {
+        alert('PNG 다운로드 기능을 사용할 수 없습니다.');
+        return;
+      }
+
+      var node = document.getElementById('main-content');
+      var menu = document.querySelector('.viz-menu');
+
+      // Hide menu temporarily
+      if (menu) menu.style.display = 'none';
+
+      htmlToImage.toPng(node)
+        .then(function(dataUrl) {
+          var link = document.createElement('a');
+          link.download = 'argue-skill-showcase.png';
+          link.href = dataUrl;
+          link.click();
+
+          // Restore menu
+          if (menu) menu.style.display = '';
+        })
+        .catch(function(error) {
+          console.error('PNG 생성 실패:', error);
+          alert('이미지 생성에 실패했습니다.');
+
+          // Restore menu
+          if (menu) menu.style.display = '';
+        });
+    }
+  </script>
+</body>
+</html>
